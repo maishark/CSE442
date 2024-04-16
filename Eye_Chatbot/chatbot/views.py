@@ -1,10 +1,14 @@
 
-from django.shortcuts import render
-from django.http import JsonResponse
+from django.shortcuts import render, reverse
+from django.contrib.auth.decorators import login_required
+from .models import ChatBot
+from django.http import HttpResponseRedirect, JsonResponse
+import google.generativeai as genai
 import cv2
 import mediapipe as mp
 import pyautogui
 
+# Create your views here.
 # Initialize face mesh for eye gesture tracking
 face_mesh = mp.solutions.face_mesh.FaceMesh(refine_landmarks=True)
 screen_w, screen_h = pyautogui.size()
@@ -40,41 +44,35 @@ def capture_and_detect_eye_gestures():
         cv2.imshow('Eye Controlled Mouse', frame)
         cv2.waitKey(1)
 
-# Chatbot view
-def chatbot(request):
-    # Start a separate thread to capture and detect eye gestures
+# add here to your generated API key
+genai.configure(api_key="AIzaSyAhbgZ_RGitZSM5ytNcTkItgB58zdwnya0")
+
+@login_required
+def ask_question(request):
     import threading
     t = threading.Thread(target=capture_and_detect_eye_gestures)
     t.start()
+    if request.method == "POST":
+        text = request.POST.get("text")
+        model = genai.GenerativeModel("gemini-pro")
+        chat = model.start_chat()
+        response = chat.send_message(text)
+        user = request.user
+        ChatBot.objects.create(text_input=text, gemini_output=response.text, user=user)
+        # Extract necessary data from response
+        response_data = {
+            "text": response.text,  # Assuming response.text contains the relevant response data
+            # Add other relevant data from response if needed
+        }
+        return JsonResponse({"data": response_data})
+    else:
+        return HttpResponseRedirect(
+            reverse("chat")
+        )  # Redirect to chat page for GET requests
 
-    # Return the rendered HTML template
-    return render(request, 'chatbot.html')
 
-
-# from django.conf import settings
-# from .utils import get_answer # text_to_speech, speech_to_text
-# import os
-
-# # Initialize session state for managing chat messages
-# def initialize_session_state(request):
-#     if "messages" not in request.session:
-#         request.session["messages"] = [{"role": "assistant", "content": "Hi! How may I assist you today?"}]
-
-# def chatbot(request):
-#     #initialize_session_state(request)
-#     if request.method == 'POST':
-#         message = request.POST.get('message')
-#         print(message)
-#         # if message:
-#         #     request.session["messages"].append({"role": "user", "content": message})
-#             # Process user message and get response
-#             #final_response = get_answer(request.session["messages"])
-#         final_response = get_answer(message)
-#         print(final_response)
-#             # Convert response to speech
-#             # audio_file = text_to_speech(final_response)
-#             # # Add response to session messages
-#             # request.session["messages"].append({"role": "assistant", "content": final_response})
-#             # os.remove(audio_file)  # Clean up audio file
-#             # return JsonResponse({'response': final_response})
-#     return render(request, 'chatbot.html')#, {'messages': request.session.get("messages", [])})
+@login_required
+def chat(request):
+    user = request.user
+    chats = ChatBot.objects.filter(user=user)
+    return render(request, "chat_bot.html", {"chats": chats})
