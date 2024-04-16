@@ -45,7 +45,7 @@ def capture_and_detect_eye_gestures():
         cv2.waitKey(1)
 
 # add here to your generated API key
-genai.configure(api_key="AIzaSyAhbgZ_RGitZSM5ytNcTkItgB58zdwnya0")
+genai.configure(api_key="")
 
 @login_required
 def ask_question(request):
