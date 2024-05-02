@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index Page</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/7.1.0/mdb.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.4.0/styles/default.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.4.0/highlight.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to the Index Page</h1>
+        <nav>
+            <ul>
+                {% if user.is_authenticated %}
+                    <li><a href="{% url 'logout' %}">Logout</a></li>
+                    <li><a href="{% url 'chat' %}">Go to Chatbot</a></li>
+                {% else %}
+                    <li><a href="{% url 'login' %}">Login</a></li>
+                    <li><a href="{% url 'signup' %}">Signup</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+
+    <div class="container">
+        <div>
+            <h2>Chatbot with Eye Gesture Cursor Interaction</h2>
+            <div>
+                <h3>Our aim:</h3>
+                <p>Our project, "Chatbot with Eye Gesture Cursor Interaction," aims to empower individuals with disabilities by enabling them to interact with chatbots using only their eyes.</p>
+            </div>
+            <div>
+                <h3>How to use:</h3>
+                <ul>
+                    <li>Move your right eye for moving the cursor</li>
+                    <li>Make Selections by a simple blink of the left eye</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        body {
+            background-image: url("https://wallpapercave.com/wp/wp13350171.jpg");
+            background-position: center center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-size: cover;
+            background-color: rgba(161, 161, 161, 0.108);
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin: 20px 0;
+            max-width: 800px;
+        }
+        .container h2, .container h3, .container p, .container ul {
+            margin: 0;
+            padding: 0;
+        }
+        .container h3 {
+            margin-top: 10px;
+        }
+        .container p, .container ul {
+            margin-top: 5px;
+        }
+    </style>
+</body>
+</html>

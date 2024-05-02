@@ -15,7 +15,6 @@ import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-OPENAI_API_KEY = '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'
 
 
 # Quick-start development settings - unsuitable for production

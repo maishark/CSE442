@@ -1,5 +1,5 @@
 
-from django.shortcuts import render, reverse
+from django.shortcuts import render, reverse, redirect
 from django.contrib.auth.decorators import login_required
 from .models import ChatBot
 from django.http import HttpResponseRedirect, JsonResponse
@@ -7,8 +7,13 @@ import google.generativeai as genai
 import cv2
 import mediapipe as mp
 import pyautogui
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import login as auth_login, authenticate
+from django.contrib.auth import logout as auth_logout
+from django.contrib.auth.forms import AuthenticationForm
 
-# Create your views here.
+
+
 # Face Mesh model from mediapipe
 face_mesh = mp.solutions.face_mesh.FaceMesh(refine_landmarks=True)
 screen_width, screen_height = pyautogui.size()
@@ -90,23 +95,64 @@ def ask_question(request):
         response = chat.send_message(text)
         user = request.user
         ChatBot.objects.create(text_input=text, gemini_output=response.text, user=user)
-        # Extract necessary data from response
+        
         response_data = {
-            "text": response.text,  # Assuming response.text contains the relevant response data
-            # Add other relevant data from response if needed
+            "text": response.text,  
+            
         }
         return JsonResponse({"data": response_data})
     else:
         return HttpResponseRedirect(
             reverse("chat")
-        )  # Redirect to chat page for GET requests
+        )  
 
 
 @login_required
 def chat(request):
     user = request.user
     chats = ChatBot.objects.filter(user=user)
+    return render(request, "chat_bot.html", {"chats": chats})
+
+
+
+
+def custom_login(request):
+    if request.method == 'POST':
+        form = AuthenticationForm(request, request.POST)
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            user = authenticate(request, username=username, password=password)
+            if user is not None:
+                auth_login(request, user)
+                return redirect('chat')
+        else:
+            pass
+    else:
+        form = AuthenticationForm()
+    return render(request, 'login.html', {'form': form})
+
+def index(request):
     import threading
     t = threading.Thread(target=capture_and_detect_eye_gestures)
     t.start()
-    return render(request, "chat_bot.html", {"chats": chats})
+    return render(request, 'index.html')
+
+
+def signup(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            username = form.cleaned_data.get('username')
+            raw_password = form.cleaned_data.get('password1')
+            user = authenticate(username=username, password=raw_password)
+            auth_login(request, user)
+            return redirect('chat')
+    else:
+        form = UserCreationForm()
+    return render(request, 'signup.html', {'form': form})
+
+def logout(request):
+    auth_logout(request)
+    return redirect('index')
